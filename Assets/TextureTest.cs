@@ -17,19 +17,19 @@ public class TextureTest : MonoBehaviour {
         TD = new TerrainData();
         TD.heightmapResolution = heightMapRes;
         AddSplatMap();
-        TD.size = new Vector3(50,20,50);
+        TD.size = new Vector3(100,200,100);
         heights = TD.GetHeights(0,0,TD.heightmapResolution,TD.heightmapResolution);
         GameObject T = Terrain.CreateTerrainGameObject(TD);
         T.transform.position = new Vector3(0,0,0);
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    }
+
+    // Update is called once per frame
+    void Update () {
         StartCoroutine(NewTexture(startx));
         if (ChangeDir)
         {
             startx++;
-            if (startx >= Tex.width)
+            if (startx >= Tex.height)
             {
                 ChangeDir = false;
                 RandColor = Random.ColorHSV();
@@ -43,7 +43,6 @@ public class TextureTest : MonoBehaviour {
             {
                 ChangeDir = true;
                 RandColor = Random.ColorHSV();
-                StartCoroutine(HeightSet(startx));
             }
         }
     }
@@ -56,7 +55,7 @@ public class TextureTest : MonoBehaviour {
         Tex = new Texture2D((int)TD.size.x,(int)TD.size.z);
         splat[0].texture = Tex;
         splat[0].tileOffset = new Vector2(0f,0f);
-        splat[0].tileSize = new Vector2(1,58);
+        splat[0].tileSize = new Vector2(128,1);
         TD.splatPrototypes = splat;
     }
     IEnumerator NewTexture(int x)
@@ -64,7 +63,6 @@ public class TextureTest : MonoBehaviour {
         for (int z = 0; z < Tex.height; z++)
         {
             Tex.SetPixel(x,z,RandColor);
-            Tex.SetPixel(x - 1, z - 1, RandColor.gamma);
             yield return new WaitForSeconds(Time.deltaTime);
             Tex.Apply();
         }
@@ -75,11 +73,16 @@ public class TextureTest : MonoBehaviour {
         {
             for (int z = 1; z < TD.heightmapResolution; z++)
             {
-                heights[x - 1, z - 1] = 0f;
-                heights[x, z] = Mathf.PerlinNoise(x / 100f, z / 100f) / 20f;
-                yield return new WaitForSeconds(Time.deltaTime);
-                TD.SetHeights(0,0,heights);
+                int R = Random.Range(NX + 100, 500);
+                heights[x, z] = Mathf.SmoothStep(Mathf.PI / R,Mathf.PerlinNoise(x / 50f, z / 50f) / 4f, 0.1f);
+                if (heights[x,z] >= 0.2f)
+                {
+                    //heights[x, z] = Mathf.Lerp(heights[x -1, z - 1],0f,0.1f);
+                }
             }
+            yield return new WaitForSeconds(Time.deltaTime);
+            TD.SetHeights(0, 0, heights);
         }
+
     }
 }
